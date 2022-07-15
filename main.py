@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Epochs objects are a data structure for representing and analyzing equal-duration chunks of the EEG/MEG signal. Epochs are
 # most often used to represent data that is time-locked to repeated experimental events (such as stimulus onsets or subject button presses),
 import mne
@@ -70,7 +72,7 @@ def main():
 
     # crop() the Raw data to save memory:
     raw = mne.io.read_raw_fif(data_file, verbose=False)
-    
+
     # if 'events' in config.keys():
     #     events_file = config.pop('events')
     #     if op.exists(events_file):
@@ -85,11 +87,11 @@ def main():
                              consecutive='increasing', mask=mask,
                              mask_type='not_and', min_duration=0.003)
     event_id_condition= config['event_id_condition']
-    
+
     #Convert String to Dictionary using strip() and split() methods
     event_id = dict((x.strip(), int(y.strip()))
                      for x, y in (element.split('-')
-                                  for element in  event_id_condition.split(', ')))     
+                                  for element in  event_id_condition.split(', ')))
 
     id_list = list(event_id.values())
 
@@ -98,3 +100,5 @@ def main():
     print(config['param_eeg'])
     epochs = epoch(config['param_meg'],config['param_eeg'],config['param_eog'], config['param_ecg'],config['param_emg'],config['param_stim'], event_id, raw, events, tmin=tmin, tmax=tmax)
 
+if __name__ == '__main__':
+    main()
