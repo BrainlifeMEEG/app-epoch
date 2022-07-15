@@ -12,6 +12,7 @@ import tempfile
 import numpy as np
 import scipy.ndimage
 import matplotlib.pyplot as plt
+import sys
 
 #workaround for -- _tkinter.TclError: invalid command name ".!canvas"
 import matplotlib
@@ -54,6 +55,7 @@ def epoch(param_meg,param_eeg,param_eog,param_ecg,param_emg,param_stim, event_id
 
     # == SAVE REPORT ==
     report.save('out_dir_report/report.html', overwrite=True)
+    sys.stdout.write('test')
 
     # == SAVE FILE ==
     epochs.save(os.path.join('out_dir', 'meg-epo.fif'), overwrite=True)
