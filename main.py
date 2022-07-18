@@ -47,9 +47,9 @@ def epoch(param_meg,param_eeg,param_eog,param_ecg,param_emg,param_stim, event_id
         tmax=tmax,
         sfreq=raw.info['sfreq']
     )
-    reject_tmax = 0.8  # duration we really care about
+  
     epochs = mne.Epochs(
-        raw=raw, events=events, event_id=event_id, metadata=metadata, reject_tmax=reject_tmax
+        raw=raw, events=events, event_id=event_id, metadata=metadata
     )
 
     report.add_epochs(epochs=epochs, title='Epochs from "epochs"')
