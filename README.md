@@ -5,9 +5,7 @@ Brainlife App to create epochs based on the events recorded in the Raw object’
 1) Input file is: 
     * `meg/fif` meg data file
     * event.tsv (optional)
-2) Input number is:
     * tmin and tmax (Start and end time of the epochs in seconds, relative to the time-locked event)
-3) Input boolean is:
     * meg bool
     If True include MEG channels. 
     
@@ -26,7 +24,7 @@ Brainlife App to create epochs based on the events recorded in the Raw object’
     * emg bool
     If True include EMG channels.
 
-4) Ouput files are:
+2) Ouput files are:
     * `epochs/fif`
     * HTML report
 
