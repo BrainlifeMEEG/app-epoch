@@ -64,7 +64,7 @@ def epoch(param_meg,param_eeg,param_eog,param_ecg,param_emg,param_stim, event_id
     
     # == FIGURES ==
     plt.figure(1)
-    fig_ep = epochs['auditory'].plot_image(picks='mag', combine='mean')
+    fig_ep = epochs['auditory/left'].plot_image(picks='mag', combine='mean')
     fig_ep.savefig(os.path.join('out_figs','epoimg.png'))
 
 def main():
