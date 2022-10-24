@@ -1,6 +1,6 @@
 # app-epoch
 
-Brainlife App to create epochs based on the events recorded in the Raw object’s STIM channels using MNE-Python Epoch method mne.Epochs function
+Brainlife App to create epochs based on the events recorded in the Raw object’s STIM channels or event.tsv using MNE-Python Epoch method [mne.Epochs function](https://mne.tools/stable/generated/mne.Epochs.html)
 
 1) Input file is: 
     * `meg/fif` meg data file
