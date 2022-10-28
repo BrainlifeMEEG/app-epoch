@@ -111,7 +111,7 @@ def main():
 
     events = mne.pick_events(events, include=id_list)
 
-    print(config['param_eeg'])
+  
     epochs = epoch(config['pick_meg'],config['pick_eeg'],config['pick_eog'], config['pick_ecg'],config['pick_emg'],config['param_stim'], event_id, raw, events, tmin=tmin, tmax=tmax)
 
 if __name__ == '__main__':
