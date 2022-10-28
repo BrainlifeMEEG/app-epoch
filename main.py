@@ -100,7 +100,7 @@ def main():
       #events = mne.find_events(raw, stim_channel=config['stim_channel'],
          #                      consecutive='increasing', mask=mask,
             #                   mask_type='not_and', min_duration=0.003)
-    event_id_condition= config['event_id_condition']
+    event_id_condition= config['event_id_condition_mapping']
 
     #Convert String to Dictionary using strip() and split() methods
     event_id = dict((x.strip(), int(y.strip()))
@@ -112,7 +112,7 @@ def main():
     events = mne.pick_events(events, include=id_list)
 
     print(config['param_eeg'])
-    epochs = epoch(config['param_meg'],config['param_eeg'],config['param_eog'], config['param_ecg'],config['param_emg'],config['param_stim'], event_id, raw, events, tmin=tmin, tmax=tmax)
+    epochs = epoch(config['pick_meg'],config['pick_eeg'],config['pick_eog'], config['pick_ecg'],config['pick_emg'],config['param_stim'], event_id, raw, events, tmin=tmin, tmax=tmax)
 
 if __name__ == '__main__':
     main()
