@@ -76,8 +76,8 @@ def main():
     data_file = config.pop('fif')
 
     # Read the event time
-    tmin = config.pop('t_min')
-    tmax = config.pop('t_max')
+    tmin = config.pop('tmin')
+    tmax = config.pop('tmax')
 
     # crop() the Raw data to save memory:
     raw = mne.io.read_raw_fif(data_file, verbose=False)
