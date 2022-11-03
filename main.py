@@ -29,7 +29,7 @@ __location__ = os.path.realpath(
 
 
 def epoch(param_meg,param_eeg,param_eog,param_ecg,param_emg,param_stim, event_id, raw, events, tmin, tmax):
-    raw.pick_types(meg=param_meg,eeg=param_eeg,eog=param_eog,ecg=param_ecg,emg=param_emg, stim=param_stim).crop(tmax=60).load_data()
+    raw.pick_types(meg=param_meg,eeg=param_eeg,eog=param_eog,ecg=param_ecg,emg=param_emg, stim=param_stim).load_data()
 
     report = mne.Report(title='Report')
 
