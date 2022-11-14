@@ -19,7 +19,7 @@ Brainlife App to create epochs based on the events recorded in the Raw object’
 
 
 ### Contributors
-- [Aurore Bussalb] (saeedzahranutc@gmail.com)
+- [Saeed Zahran] (saeedzahranutc@gmail.com)
 - [Maximilien Chaumon] (maximilien.chaumon@icm-institute.org)
 
 ### Funding Acknowledgement
