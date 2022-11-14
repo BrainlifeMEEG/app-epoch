@@ -28,7 +28,7 @@ __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
-def epoch(param_meg,param_eeg,param_eog,param_ecg,param_emg,param_stim, event_id, raw, events, tmin, tmax):
+def epoch(param_meg,param_eeg,param_eog,param_ecg,param_emg,param_stim, plot_cond, pick, event_id, raw, events, tmin, tmax):
     raw.pick_types(meg=param_meg,eeg=param_eeg,eog=param_eog,ecg=param_ecg,emg=param_emg, stim=param_stim).load_data()
 
     report = mne.Report(title='Report')
@@ -66,6 +66,11 @@ def epoch(param_meg,param_eeg,param_eog,param_ecg,param_emg,param_stim, event_id
    #plt.figure(1)
     #fig_ep = epochs['auditory/left'].plot_image(picks='mag', combine='mean')
     #fig_ep.savefig(os.path.join('out_figs','epoimg.png'))
+    
+     # == FIGURES ==
+     plt.figure(1)
+     fig_ep = epochs[plot_cond].plot_image(picks=[pick])
+     fig_ep[0].savefig(os.path.join('out_figs','epoimg.png'))
 
 def main():
     # Load inputs from config.json
@@ -112,7 +117,7 @@ def main():
     events = mne.pick_events(events, include=id_list)
 
   
-    epochs = epoch(config['pick_meg'],config['pick_eeg'],config['pick_eog'], config['pick_ecg'],config['pick_emg'],config['param_stim'], event_id, raw, events, tmin=tmin, tmax=tmax)
+    epochs = epoch(config['pick_meg'],config['pick_eeg'],config['pick_eog'], config['pick_ecg'],config['pick_emg'],config['param_stim'], config['plot_cond'], config['pick'], event_id, raw, events, tmin=tmin, tmax=tmax)
 
 if __name__ == '__main__':
     main()
