@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#PBS -l nodes=1:ppn=8
+#PBS -l nodes=1:ppn=1
 #PBS -l walltime=00:10:00
 
 set -x
@@ -16,3 +16,16 @@ mkdir -p out_dir_report
 singularity exec docker://brainlife/mne:1.0.2 python3 main.py
 
 
+cat << EOF > product.json
+{
+    "brainlife": [
+      
+       {
+         "type": "image/png",
+	       "name": "Epochs as an image map",
+         "base64": "$(base64 -w 0 out_figs/epoimg.png)"
+       }
+      
+]
+}
+EOF
