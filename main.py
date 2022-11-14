@@ -68,9 +68,9 @@ def epoch(param_meg,param_eeg,param_eog,param_ecg,param_emg,param_stim, plot_con
     #fig_ep.savefig(os.path.join('out_figs','epoimg.png'))
     
      # == FIGURES ==
-     plt.figure(1)
-     fig_ep = epochs[plot_cond].plot_image(picks=[pick])
-     fig_ep[0].savefig(os.path.join('out_figs','epoimg.png'))
+    plt.figure(1)
+    fig_ep = epochs[plot_cond].plot_image(picks=[pick])
+    fig_ep[0].savefig(os.path.join('out_figs','epoimg.png'))
 
 def main():
     # Load inputs from config.json
