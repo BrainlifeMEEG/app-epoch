@@ -34,11 +34,11 @@ def epoch(param_meg,param_eeg,param_eog,param_ecg,param_emg,param_stim, plot_con
     report = mne.Report(title='Report')
 
     #raw
-    report.add_raw(raw=raw, title='Raw', psd=False)  # omit PSD plot
+    #report.add_raw(raw=raw, title='Raw', psd=False)  # omit PSD plot
 
     #events
     sfreq = raw.info['sfreq']
-    report.add_events(events=events, title='Events', sfreq=sfreq)
+    #report.add_events(events=events, title='Events', sfreq=sfreq)
 
     metadata, _, _ = mne.epochs.make_metadata(
         events=events,
