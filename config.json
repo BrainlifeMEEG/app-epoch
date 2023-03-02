@@ -1,6 +1,7 @@
 {
 
-    "fif": "/network/lustre/iss01/home/saeed.zahran/mne_data/MNE-sample-data/MEG/sample/sample_audvis_raw.fif",
+    "fif": "/network/lustre/iss02/cenir/analyse/meeg/BRAINLIFE/datasets/mne-datasets/MNE-sample-data/MEG/sample/sample_audvis_raw.fif",
+    "stim_channel": "STI 014",
     "t_min": -0.3,
     "t_max": 0.7,
     "param_eeg": false,
@@ -8,5 +9,6 @@
     "param_eog": false,
     "param_ecg": false,
     "param_emg": false,
-    "param_stim": true
+    "param_stim": true,
+    "event_id_condition": "auditory/left-1"
 }
