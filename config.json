@@ -10,5 +10,7 @@
     "param_ecg": false,
     "param_emg": false,
     "param_stim": true,
-    "event_id_condition": "auditory/left-1"
+    "event_id_condition_mapping": "stimulus/auditory/target_left-1",
+    "metadata_tmin": -0.5,
+    "metadata_tmax": 1.1
 }
