@@ -15,12 +15,12 @@ Brainlife App to create epochs based on the events recorded in the Raw object’
 
 ## Authors
 - [Saeed Zahran] (saeedzahranutc@gmail.com)
-
-
+- [Kami Salibayeva] (ksalibay@iu.edu)
 
 ### Contributors
 - [Saeed Zahran] (saeedzahranutc@gmail.com)
 - [Maximilien Chaumon] (maximilien.chaumon@icm-institute.org)
+- [Kami Salibayeva] (ksalibay@iu.edu)
 
 ### Funding Acknowledgement
 brainlife.io is publicly funded and for the sustainability of the project it is helpful to Acknowledge the use of the platform. We kindly ask that you acknowledge the funding below in your code and publications. Copy and past the following lines into your repository when using this code.
