@@ -10,7 +10,7 @@
     "param_ecg": false,
     "param_emg": false,
     "param_stim": true,
-    "event_id_condition_mapping": "stimulus/auditory/target_left-1",
+    "event_id_condition_mapping": "stimulus/D_REA_2/target_right-13,stimulus/D_LEA_2/target_right-14,stimulus/REA_D_2/target_left-15,stimulus/LEA_D_2/target_left-16,stimulus/RIA_REA_2/target_right-17,stimulus/LIA_LEA_2/target_right-18,stimulus/RIA_D_2/target_left-19,stimulus/LIA_D_2/target_left-20,stimulus/D_RIA_2/target_right-21,stimulus/D_LIA_2/target_right-22,stimulus/REA_RIA_2/target_left-23,stimulus/LEA_LIA_2/target_left-24,response/left-25,response/right-26",
     "metadata_tmin": -0.5,
     "metadata_tmax": 1.1
 }
