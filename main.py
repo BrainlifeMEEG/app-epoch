@@ -72,13 +72,17 @@ if config['assess_correctness'] == True:
         row_events=row_events,
         keep_last=keep_last)
     
-    target_left = [stim[9:] for stim in row_events if stim[-4:] == 'left']
-    target_right = [stim[9:] for stim in row_events if stim[-5:] == 'right']
+    responses = [resp for resp in event_id.keys() is 'response' in resp]
+    resp1 = responses[0].partition('/')[0]
+    resp2 = responses[1].partition('/')[1]
+    
+    target_left = [stim.partition('/')[1] for stim in row_events if stim.partition('/')[2] == resp1]
+    target_right = [stim.partition('/')[1] for stim in row_events if stim.partition('/')[2] == resp2]
     
     metadata.loc[metadata['last_stimulus'].isin(target_left),
-              'stimulus_side'] = 'left'
+              'stimulus_side'] = resp1
     metadata.loc[metadata['last_stimulus'].isin(target_right),
-              'stimulus_side'] = 'right'
+              'stimulus_side'] = resp2
     
     metadata['response_correct'] = False
     metadata.loc[metadata['stimulus_side'] == metadata['last_response'],
