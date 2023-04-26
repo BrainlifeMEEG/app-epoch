@@ -106,7 +106,9 @@ sfreq = raw.info['sfreq']
 #report.add_events(events=events, title='Events', sfreq=sfreq)
 
 epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, metadata=metadata, tmin=tmin, tmax=tmax)
-epochs = epochs['response_correct']
+    if config['use_correct']==True:
+        epochs = epochs['response_correct']
+
 report.add_epochs(epochs=epochs, title='Epochs from "epochs"')
  
  # == SAVE REPORT ==
