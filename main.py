@@ -73,11 +73,11 @@ if config['assess_correctness'] == True:
         keep_last=keep_last)
     
     responses = [resp for resp in event_id.keys() is 'response' in resp]
-    resp1 = responses[0].partition('/')[0]
-    resp2 = responses[1].partition('/')[1]
+    resp1 = responses[0].split('/')[0]
+    resp2 = responses[1].split('/')[1]
     
-    target_left = [stim.partition('/')[1] for stim in row_events if stim.partition('/')[2] == resp1]
-    target_right = [stim.partition('/')[1] for stim in row_events if stim.partition('/')[2] == resp2]
+    target_left = [stim.split('/')[1] for stim in row_events if stim.split('/')[2] == resp1]
+    target_right = [stim.split('/')[1] for stim in row_events if stim.split('/')[2] == resp2]
     
     metadata.loc[metadata['last_stimulus'].isin(target_left),
               'stimulus_side'] = resp1
