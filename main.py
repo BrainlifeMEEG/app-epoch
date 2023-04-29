@@ -56,28 +56,28 @@ events = mne.find_events(raw, stim_channel=config['stim_channel'])
 event_id_condition= config['event_id_condition_mapping']
 
 #Convert String to Dictionary using strip() and split() methods
-event_id = dict((x.strip(), int(y.strip()))
+event_id0 = dict((x.strip(), int(y.strip()))
                  for x, y in (element.split('-')
                               for element in event_id_condition.split(',')))
 if config['assess_correctness'] == True:
     metadata_tmin, metadata_tmax = config['metadata_tmin'], config['metadata_tmax']
     
-    row_events = [k for k in event_id.keys() if 'stimulus' in k]
+    row_events = [k for k in event_id0.keys() if 'stimulus' in k]
     
     keep_last = ['stimulus', 'response']
     
     metadata, events, event_id = mne.epochs.make_metadata(
-        events=events, event_id=event_id, 
+        events=events, event_id=event_id0, 
         tmin=metadata_tmin, tmax=metadata_tmax, sfreq=raw.info['sfreq'],
         row_events=row_events,
         keep_last=keep_last)
     
-    responses = [resp for resp in event_id.keys() is 'response' in resp]
-    resp1 = responses[0].split('/')[0]
+    responses = [k for k in event_id0.keys() if 'response' in k]
+    resp1 = responses[0].split('/')[1]
     resp2 = responses[1].split('/')[1]
     
-    target_left = [stim.split('/')[1] for stim in row_events if stim.split('/')[2] == resp1]
-    target_right = [stim.split('/')[1] for stim in row_events if stim.split('/')[2] == resp2]
+    target_left = [stim.partition('/')[2] for stim in row_events if resp1 in stim.split('/')[2]]
+    target_right = [stim.partition('/')[2] for stim in row_events if resp2 in stim.split('/')[2]]
     
     metadata.loc[metadata['last_stimulus'].isin(target_left),
               'stimulus_side'] = resp1
@@ -110,8 +110,8 @@ sfreq = raw.info['sfreq']
 #report.add_events(events=events, title='Events', sfreq=sfreq)
 
 epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, metadata=metadata, tmin=tmin, tmax=tmax)
-    if config['use_correct']==True:
-        epochs = epochs['response_correct']
+if config['use_correct']==True:
+    epochs = epochs['response_correct']
 
 report.add_epochs(epochs=epochs, title='Epochs from "epochs"')
  
@@ -120,4 +120,4 @@ report.save('report.html',overwrite=True)
 sys.stdout.write('test')
 
  # == SAVE FILE ==
-epochs.save(os.path.join('out_dir', 'meg-epo.fif'), overwrite=True)
+epochs.save(os.path.join('out_dir', 'epo.fif'), overwrite=True)
