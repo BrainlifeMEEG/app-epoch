@@ -1,5 +1,6 @@
 {
     "fif": "/N/slate/ksalibay/DataLatinus/S12/S12_T1_run1.fif",
+    "events": "/N/slate/ksalibay/DataLatinus/S12/S12_T1_run1_events.tsv",
     "stim_channel": "STI 014",
     "tmin": -0.5,
     "tmax": 1.1,
