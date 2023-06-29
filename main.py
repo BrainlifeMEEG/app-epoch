@@ -16,9 +16,6 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
-import mne
-
-
 # Current path
 __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -38,7 +35,7 @@ tmax = config.pop('tmax')
 raw = mne.io.read_raw_fif(data_file, verbose=False)
 #mask = 4096 + 256  # mask for excluding high order bits
 
-if config['events'] is not None:
+if config.get('events') is not None:
    events_file = config.pop('events')
    if op.exists(events_file):
        events = mne.read_events(events_file)
