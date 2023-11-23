@@ -100,7 +100,7 @@ report.add_html(title='Counts of correct responses',html='<dev>'+'Correct respon
        'Incorrect responses: '+str(incorrect_response_count)+'</dev>')
  
  # == SAVE REPORT ==
-report.save(os.path.join('out_dir_report','report.html'))
+report.save(os.path.join('out_dir_report','report.html'), overwrite=True)
 
  # == SAVE FILE ==
 epochs.save(os.path.join('out_dir', 'meg-epo.fif'), overwrite=True)
