@@ -20,6 +20,7 @@ Example: stimulus/auditory/left-1,stimulus/visual/right-2,response/left-3,respon
     * `epochs/fif`
     * `HTML report`
 
+![Report header example](https://github.com/BrainlifeMEEG/app-epoch/blob/master/avatar.png)
 
 ## Authors
 - [Kami Salibayeva] (ksalibay@iu.edu)
