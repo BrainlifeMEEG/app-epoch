@@ -58,19 +58,31 @@ row_events = [k for k in event_id.keys() if 'stimulus' in k]
 
 keep_last = ['stimulus', 'response']
 
+#Let's count the number of possible responses (i.e. the number of unique values in the event_id dictionary that have 'response' in the key)
+response_count = len(set([k for k in event_id.keys() if 'response' in k]))
+
 metadata, events, event_id = mne.epochs.make_metadata(
     events=events, event_id=event_id, 
     tmin=metadata_tmin, tmax=metadata_tmax, sfreq=raw.info['sfreq'],
     row_events=row_events,
     keep_last=keep_last)
 
-target_left = [stim[9:] for stim in row_events if stim[-4:] == 'left']
-target_right = [stim[9:] for stim in row_events if stim[-5:] == 'right']
+#Now we need to reformat the code below to allow more than 2 responses
 
-metadata.loc[metadata['last_stimulus'].isin(target_left),
-          'stimulus_side'] = 'left'
-metadata.loc[metadata['last_stimulus'].isin(target_right),
-          'stimulus_side'] = 'right'
+#Let's extract what types of responses there are
+#That is determined by the text following the '/' in the event_id dictionary items with 'response' in the key
+
+response_types = [k.split('/')[1] for k in event_id.keys() if 'response' in k]
+
+#For now, let's assume that there are only two types of responses
+
+target_1 = [stim[9:] for stim in row_events if stim[-4:] == response_types[0]]
+target_2 = [stim[9:] for stim in row_events if stim[-5:] == response_types[1]]
+
+metadata.loc[metadata['last_stimulus'].isin(target_1),
+          'stimulus_side'] = response_types[0]
+metadata.loc[metadata['last_stimulus'].isin(target_2),
+          'stimulus_side'] = response_types[1]
 
 metadata['response_correct'] = False
 metadata.loc[metadata['stimulus_side'] == metadata['last_response'],
@@ -97,7 +109,7 @@ correct_response_count = metadata['response_correct'].sum()
 incorrect_response_count = len(metadata) - correct_response_count
 
 report.add_html(title='Counts of correct responses',html='<dev>'+'Correct responses: '+str(correct_response_count)+
-       'Incorrect responses: '+str(incorrect_response_count)+'</dev>')
+       '<br>'+'Incorrect responses: '+str(incorrect_response_count)+'</dev>')
  
  # == SAVE REPORT ==
 report.save(os.path.join('out_dir_report','report.html'), overwrite=True)
