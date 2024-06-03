@@ -116,3 +116,16 @@ report.save(os.path.join('out_dir_report','report.html'), overwrite=True)
 
  # == SAVE FILE ==
 epochs.save(os.path.join('out_dir', 'meg-epo.fif'), overwrite=True)
+
+plt.figure()
+epochs.plot()
+plt.savefig(os.path.join('out_figs', 'epochs_plot.png'))
+
+with open(os.path.join('out_figs', 'epochs_plot.png'), 'rb') as file:
+    data_uri = file.read().encode('base64').replace('\n', '')
+
+dict_json_product = {'brainlife': []}
+dict_json_product['brainlife'].append({'type': 'image/png', 'name': 'Epochs', 'base64': data_uri})
+
+with open('product.json', 'w') as outfile:
+    json.dump(dict_json_product, outfile)
