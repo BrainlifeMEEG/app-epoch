@@ -128,7 +128,8 @@ sfreq = raw.info['sfreq']
 #report.add_events(events=events, title='Events', sfreq=sfreq)
 
 epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, metadata=metadata, tmin=tmin, tmax=tmax)
-epochs = epochs['response_correct']
+if config.pop('use_correct'):
+    epochs = epochs['response_correct']
 report.add_epochs(epochs=epochs, title='Epochs from "epochs"')
 
 correct_response_count = metadata['response_correct'].sum()
