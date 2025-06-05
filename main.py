@@ -95,7 +95,7 @@ for response_type, target in targets.items():
     metadata.loc[metadata['last_stimulus'].str.contains(target), 'stimulus_side'] = response_type
     
 # Now if we want to assess correctness, we can do so by checking if the last_response matches the stimulus_side
-if assess.lower() == 'true':
+if assess:
     metadata['response_correct'] = False
     metadata.loc[metadata['stimulus_side'] == metadata['last_response'],
                  'response_correct'] = True
