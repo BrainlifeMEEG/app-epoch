@@ -71,22 +71,48 @@ metadata, events, event_id = mne.epochs.make_metadata(
 
 #Let's extract what types of responses there are
 #That is determined by the text following the '/' in the event_id dictionary items with 'response' in the key
+assess = config.pop('assess_correctness')
 
 response_types = [k.split('/')[1] for k in event_id.keys() if 'response' in k]
 
-#For now, let's assume that there are only two types of responses
+# Let's cycle through possible response types and create a dict of targets
 
-target_1 = [stim[9:] for stim in row_events if stim[-4:] == response_types[0]]
-target_2 = [stim[9:] for stim in row_events if stim[-5:] == response_types[1]]
+targets = {}
 
-metadata.loc[metadata['last_stimulus'].isin(target_1),
-          'stimulus_side'] = response_types[0]
-metadata.loc[metadata['last_stimulus'].isin(target_2),
-          'stimulus_side'] = response_types[1]
+for response_type in response_types:
+# The target is contained within the stimulus string ('signal_type/stimulus_type/target_type-CODE'), so we need to extract the target_type
+# The target_type is the part of the string after the last '/' and before the '-', with 'target_' stripped out of it if present
+# For example, 'signal_type/stimulus_type/target_type-CODE' would become 'target_type' and then 'type' after stripping 'target_'
+    for stim in row_events:
+        if response_type in stim:
+            target = stim.split('/')[-1].split('-')[0].replace('target_', '')
+            targets[response_type] = target
+            break
 
-metadata['response_correct'] = False
-metadata.loc[metadata['stimulus_side'] == metadata['last_response'],
-         'response_correct'] = True
+# Now we can assign the stimulus_side based on the last_stimulus and the response type
+metadata['stimulus_side'] = 'unknown'  # Initialize with a default value
+for response_type, target in targets.items():
+    metadata.loc[metadata['last_stimulus'].str.contains(target), 'stimulus_side'] = response_type
+    
+# Now if we want to assess correctness, we can do so by checking if the last_response matches the stimulus_side
+if assess.lower() == 'true':
+    metadata['response_correct'] = False
+    metadata.loc[metadata['stimulus_side'] == metadata['last_response'],
+                 'response_correct'] = True
+
+# #For now, let's assume that there are only two types of responses
+
+# target_1 = [stim[9:] for stim in row_events if stim[-4:] == response_types[0]]
+# target_2 = [stim[9:] for stim in row_events if stim[-5:] == response_types[1]]
+
+# metadata.loc[metadata['last_stimulus'].isin(target_1),
+#           'stimulus_side'] = response_types[0]
+# metadata.loc[metadata['last_stimulus'].isin(target_2),
+#           'stimulus_side'] = response_types[1]
+
+# metadata['response_correct'] = False
+# metadata.loc[metadata['stimulus_side'] == metadata['last_response'],
+#          'response_correct'] = True
 
 id_list = [v for k, v in event_id.items() if k[0:3] != 'stim']
 
