@@ -23,11 +23,11 @@ Example: stimulus/auditory/left-1,stimulus/visual/right-2,response/left-3,respon
 ![Report header example](https://github.com/BrainlifeMEEG/app-epoch/blob/master/avatar.png)
 
 ## Authors
-- [Kami Salibayeva] (ksalibay@iu.edu)
+- [Kami Salibayeva] (k.salibayeva@gmail.com)
 
 ### Contributors
 - [Maximilien Chaumon] (maximilien.chaumon@icm-institute.org)
-- [Kami Salibayeva] (ksalibay@iu.edu)
+- [Kami Salibayeva] (k.salibayeva@gmail.com)
 
 ### Funding Acknowledgement
 brainlife.io is publicly funded and for the sustainability of the project it is helpful to Acknowledge the use of the platform. We kindly ask that you acknowledge the funding below in your code and publications. Copy and past the following lines into your repository when using this code.
