@@ -33,7 +33,7 @@ tmax = config['tmax']
 
 raw = mne.io.read_raw_fif(data_file, verbose=False)
 
-if config['events'] is not None:
+if 'events' in config and config['events'] is not None:
    events_file = config['events']
    if op.exists(events_file):
        events = mne.read_events(events_file)
