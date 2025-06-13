@@ -25,18 +25,16 @@ with open('config.json') as config_json:
     config = json.load(config_json)
 
 # Read the meg file
-data_file = config.pop('fif')
+data_file = config['fif']
 
 # Read the event time
-tmin = config.pop('tmin')
-tmax = config.pop('tmax')
+tmin = config['tmin']
+tmax = config['tmax']
 
-# crop() the Raw data to save memory:
 raw = mne.io.read_raw_fif(data_file, verbose=False)
-#mask = 4096 + 256  # mask for excluding high order bits
 
-if config.get('events') is not None:
-   events_file = config.pop('events')
+if config['events'] is not None:
+   events_file = config['events']
    if op.exists(events_file):
        events = mne.read_events(events_file)
    else:
@@ -46,7 +44,6 @@ else:
 
 event_id_condition= config['event_id_condition_mapping']
 
-#Convert String to Dictionary using strip() and split() methods
 event_id = dict((x.strip(), int(y.strip()))
                  for x, y in (element.split('-')
                               for element in event_id_condition.split(',')))
@@ -58,7 +55,6 @@ row_events = [k for k in event_id.keys() if 'stimulus' in k]
 
 keep_last = ['stimulus', 'response']
 
-#Let's count the number of possible responses (i.e. the number of unique values in the event_id dictionary that have 'response' in the key)
 response_count = len(set([k for k in event_id.keys() if 'response' in k]))
 
 metadata, events, event_id = mne.epochs.make_metadata(
@@ -67,22 +63,11 @@ metadata, events, event_id = mne.epochs.make_metadata(
     row_events=row_events,
     keep_last=keep_last)
 
-#Now we need to reformat the code below to allow more than 2 responses
-
-#Let's extract what types of responses there are
-#That is determined by the text following the '/' in the event_id dictionary items with 'response' in the key
-assess = config.pop('assess_correctness')
-
 response_types = [k.split('/')[1] for k in event_id.keys() if 'response' in k]
-
-# Let's cycle through possible response types and create a dict of targets
 
 targets = {}
 
 for response_type in response_types:
-# The target is contained within the stimulus string ('signal_type/stimulus_type/target_type-CODE'), so we need to extract the target_type
-# The target_type is the part of the string after the last '/' and before the '-', with 'target_' stripped out of it if present
-# For example, 'signal_type/stimulus_type/target_type-CODE' would become 'target_type' and then 'type' after stripping 'target_'
     for stim in row_events:
         if response_type in stim:
             target = stim.split('/')[-1].split('-')[0].replace('target_', '')
@@ -95,24 +80,11 @@ for response_type, target in targets.items():
     metadata.loc[metadata['last_stimulus'].str.contains(target), 'stimulus_side'] = response_type
     
 # Now if we want to assess correctness, we can do so by checking if the last_response matches the stimulus_side
-if assess:
+if config['assess_correctness']:
     metadata['response_correct'] = False
     metadata.loc[metadata['stimulus_side'] == metadata['last_response'],
                  'response_correct'] = True
 
-# #For now, let's assume that there are only two types of responses
-
-# target_1 = [stim[9:] for stim in row_events if stim[-4:] == response_types[0]]
-# target_2 = [stim[9:] for stim in row_events if stim[-5:] == response_types[1]]
-
-# metadata.loc[metadata['last_stimulus'].isin(target_1),
-#           'stimulus_side'] = response_types[0]
-# metadata.loc[metadata['last_stimulus'].isin(target_2),
-#           'stimulus_side'] = response_types[1]
-
-# metadata['response_correct'] = False
-# metadata.loc[metadata['stimulus_side'] == metadata['last_response'],
-#          'response_correct'] = True
 
 id_list = [v for k, v in event_id.items() if k[0:3] != 'stim']
 
@@ -120,16 +92,14 @@ events = mne.pick_events(events, include=id_list)
 
 report = mne.Report(title='Report')
 
-#raw
-#report.add_raw(raw=raw, title='Raw', psd=False)  # omit PSD plot
+epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, metadata=metadata, tmin=tmin, tmax=tmax, preload=True)
 
-#events
-sfreq = raw.info['sfreq']
-#report.add_events(events=events, title='Events', sfreq=sfreq)
-
-epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, metadata=metadata, tmin=tmin, tmax=tmax)
-if config.pop('use_correct'):
+if config['use_correct']:
     epochs = epochs['response_correct']
+
+if len(epochs) == 0:
+    raise ValueError("No epochs were created. Please check your event_id and tmin/tmax parameters.")
+
 report.add_epochs(epochs=epochs, title='Epochs from "epochs"')
 
 correct_response_count = metadata['response_correct'].sum()
