@@ -3,6 +3,7 @@
 Brainlife App to create epochs based on the events recorded in the Raw object’s STIM channels or event.tsv using MNE-Python Epoch method [mne.Epochs function](https://mne.tools/stable/generated/mne.Epochs.html).
 
 If you want to epoch according to certain event codes, you need to create a mapping between event IDs (1,2,3..., as coded in 'STI 014' or other stimulus aggregate channel) and desired labels (e.g. 'auditory', 'visual', or any other stimulus names that make sense in your design). The mapping should be formatted with dashes (-) between a desired label and the ID code and commas (,) between list entries like so: auditory-1,visual-2, etc. 
+A full tutorial on what metadata creation looks like can be seen here: https://mne.tools/stable/auto_tutorials/epochs/40_autogenerate_metadata.html.
 
 If you toggle "assess_correctness", then you need to provide additional information about your events and the correct response (for stimulus), as well as responses and their types. 
 
