@@ -57,13 +57,14 @@ keep_last = ['stimulus', 'response']
 
 response_count = len(set([k for k in event_id.keys() if 'response' in k]))
 
+response_types = [k.split('/')[1] for k in event_id.keys() if 'response' in k]
+
 metadata, events, event_id = mne.epochs.make_metadata(
     events=events, event_id=event_id, 
     tmin=metadata_tmin, tmax=metadata_tmax, sfreq=raw.info['sfreq'],
     row_events=row_events,
     keep_last=keep_last)
 
-response_types = [k.split('/')[1] for k in event_id.keys() if 'response' in k]
 
 targets = {}
 
