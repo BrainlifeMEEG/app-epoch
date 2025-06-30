@@ -9,6 +9,7 @@ import numpy as np
 import scipy.ndimage
 import matplotlib.pyplot as plt
 import sys
+import base64
 
 #workaround for -- _tkinter.TclError: invalid command name ".!canvas"
 import matplotlib
@@ -115,12 +116,14 @@ report.save(os.path.join('out_dir_report','report.html'), overwrite=True)
  # == SAVE FILE ==
 epochs.save(os.path.join('out_dir', 'meg-epo.fif'), overwrite=True)
 
-plt.figure()
-epochs.plot()
-plt.savefig(os.path.join('out_figs', 'epochs_plot.png'))
+# Create and save epochs plot without displaying it
+fig = epochs.plot_image(combine='gfp',show=False)
+fig[0].savefig(os.path.join('out_figs', 'epochs_plot.png'))
+plt.close(fig[0])  # Close the figure to free memory
 
-with open(os.path.join('out_figs', 'epochs_plot.png'), 'rb') as file:
-    data_uri = file.read().encode('base64').replace('\n', '')
+# Read PNG and convert to base64 in one step
+png_path = os.path.join('out_figs', 'epochs_plot.png')
+data_uri = base64.b64encode(open(png_path, 'rb').read()).decode('utf-8')
 
 dict_json_product = {'brainlife': []}
 dict_json_product['brainlife'].append({'type': 'image/png', 'name': 'Epochs', 'base64': data_uri})
