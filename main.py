@@ -1,29 +1,34 @@
+"""
+Epoch extraction app for Brainlife.io
+
+This app creates epochs from raw MEG/EEG data based on events.
+
+Inputs:
+    - raw.fif: Raw MEG/EEG data file
+    - event.tsv: Optional events file (if not provided, events are detected from stim channel)
+
+Outputs:
+    - meg-epo.fif: Epoched data
+    - report.html: HTML report with epoch information and visualizations
+    - product.json: Brainlife.io product metadata with visualizations
+"""
+
 import mne
-import json
 import os
 import os.path as op
 import matplotlib.pyplot as plt
-from pathlib import Path
-import tempfile
 import numpy as np
-import scipy.ndimage
-import matplotlib.pyplot as plt
-import sys
-import base64
 
-#workaround for -- _tkinter.TclError: invalid command name ".!canvas"
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+# Setup matplotlib for headless execution
+from brainlife_utils import setup_matplotlib_backend, load_config, ensure_output_dirs, create_product_json, add_info_to_product, add_image_to_product
 
+setup_matplotlib_backend()
 
-# Current path
-__location__ = os.path.realpath(
-    os.path.join(os.getcwd(), os.path.dirname(__file__)))
+# Load config
+config = load_config()
 
-# Load inputs from config.json
-with open('config.json') as config_json:
-    config = json.load(config_json)
+# Ensure output directories exist
+ensure_output_dirs('out_dir', 'out_figs', 'out_report')
 
 # Read the meg file
 data_file = config['fif']
@@ -110,23 +115,37 @@ incorrect_response_count = len(metadata) - correct_response_count
 report.add_html(title='Counts of correct responses',html='<dev>'+'Correct responses: '+str(correct_response_count)+
        '<br>'+'Incorrect responses: '+str(incorrect_response_count)+'</dev>')
  
- # == SAVE REPORT ==
-report.save(os.path.join('out_dir_report','report.html'), overwrite=True)
+report.add_epochs(epochs=epochs, title='Epochs from "epochs"')
 
- # == SAVE FILE ==
+correct_response_count = metadata['response_correct'].sum() if config.get('assess_correctness') else 0
+incorrect_response_count = len(metadata) - correct_response_count if config.get('assess_correctness') else 0
+
+if config.get('assess_correctness'):
+    report.add_html(title='Counts of correct responses', html='<div>'+'Correct responses: '+str(correct_response_count)+
+           '<br>'+'Incorrect responses: '+str(incorrect_response_count)+'</div>')
+
+# Create epochs plot visualization
+fig = epochs.plot_image(combine='gfp', show=False)
+epochs_plot_path = os.path.join('out_figs', 'epochs_plot.png')
+fig[0].savefig(epochs_plot_path)
+plt.close(fig[0])
+
+# Add image to report
+report.add_image(epochs_plot_path, title='Epochs Plot')
+
+# Save report
+report.save(os.path.join('out_report', 'report.html'), overwrite=True)
+
+# Save file
 epochs.save(os.path.join('out_dir', 'meg-epo.fif'), overwrite=True)
 
-# Create and save epochs plot without displaying it
-fig = epochs.plot_image(combine='gfp',show=False)
-fig[0].savefig(os.path.join('out_figs', 'epochs_plot.png'))
-plt.close(fig[0])  # Close the figure to free memory
+# Create product.json
+product_items = []
+add_info_to_product(product_items, f"Number of epochs: {len(epochs)}")
+add_info_to_product(product_items, f"Epoch time window: {tmin} to {tmax} seconds")
+if config.get('assess_correctness'):
+    add_info_to_product(product_items, f"Correct responses: {correct_response_count}")
+    add_info_to_product(product_items, f"Incorrect responses: {incorrect_response_count}")
+add_image_to_product(product_items, epochs_plot_path, 'epochs_plot.png')
 
-# Read PNG and convert to base64 in one step
-png_path = os.path.join('out_figs', 'epochs_plot.png')
-data_uri = base64.b64encode(open(png_path, 'rb').read()).decode('utf-8')
-
-dict_json_product = {'brainlife': []}
-dict_json_product['brainlife'].append({'type': 'image/png', 'name': 'Epochs', 'base64': data_uri})
-
-with open('product.json', 'w') as outfile:
-    json.dump(dict_json_product, outfile)
+create_product_json(product_items)
