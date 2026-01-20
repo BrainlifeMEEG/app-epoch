@@ -76,8 +76,8 @@ event_id = dict((x.strip(), int(y.strip()))
                              for element in event_id_condition.split(',')))
 
 # Get event types from configuration
-event1 = config['event1']  # e.g., 'stimulus'
-event2 = config['event2']  # e.g., 'response'
+event1 = config['event1kw']  # e.g., 'stimulus'
+event2 = config['event2kw']  # e.g., 'response'
 
 # == CREATE METADATA ==
 metadata_tmin = config['metadata_tmin']
