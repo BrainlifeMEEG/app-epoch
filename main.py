@@ -16,6 +16,14 @@ Outputs:
     - product.json: Brainlife.io product metadata including visualization images
 """
 
+# Copyright (c) 2026 brainlife.io
+#
+# This app creates epochs from raw MEG/EEG data.
+#
+# Authors:
+# - Kami Salibayeva (https://github.com/KSalibay)
+# - Maximilien Chaumon (https://github.com/dnacombo)
+
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'brainlife_utils'))

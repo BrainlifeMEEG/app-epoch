@@ -86,10 +86,8 @@ The HTML report includes:
 - Channels information
 
 ## Authors
-- [Kami Salibayeva](k.salibayeva@gmail.com)
-
-### Contributors
-- [Maximilien Chaumon](maximilien.chaumon@icm-institute.org)
+- [Kami Salibayeva](https://github.com/KSalibay)
+- [Maximilien Chaumon](https://github.com/dnacombo), Paris Brain Institute
 
 ## Funding Acknowledgement
 
