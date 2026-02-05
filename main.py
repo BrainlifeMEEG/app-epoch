@@ -63,18 +63,15 @@ tmax = config['tmax']
 
 # == LOAD EVENTS ==
 # Load events from file or detect from raw data
-if 'events' in config and config['events'] is not None:
-    events_file = config['events']
-    if op.exists(events_file):
-        events = mne.read_events(events_file)
-    else:
-        if 'stim_channel' not in config:
-            raise ValueError("stim_channel must be specified in config if input events file is not provided.")
-        events = mne.find_events(raw, stim_channel=config['stim_channel'])
+# Load events from file if provided, otherwise detect from stim channel
+events_file = config.get('events')
+if events_file and op.exists(events_file):
+    events = mne.read_events(events_file)
 else:
-    if 'stim_channel' not in config:
-        raise ValueError("stim_channel must be specified in config.")
-    events = mne.find_events(raw, stim_channel=config['stim_channel'])
+    stim_channel = config.get('stim_channel')
+    if not stim_channel:
+        raise ValueError("stim_channel must be specified in config if events file is not provided.")
+    events = mne.find_events(raw, stim_channel=stim_channel)
 
 # == PARSE EVENT ID MAPPING ==
 # Parse event_id_condition_mapping into event_id dictionary
@@ -129,9 +126,6 @@ else:
     # Initialize correctness column as all True if not assessing
     metadata[f'{event2}_correct'] = True
 
-# Filter events to exclude stim channel markers
-id_list = [v for k, v in event_id.items() if event1 not in k.lower()]
-events = mne.pick_events(events, include=id_list)
 
 # == CREATE EPOCHS ==
 epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, metadata=metadata,
