@@ -33,6 +33,7 @@ import mne
 import os.path as op
 import matplotlib.pyplot as plt
 import numpy as np
+import base64
 
 # Import shared utilities
 from brainlife_utils import (
@@ -183,6 +184,8 @@ if config.get('assess_correctness', False):
     add_info_to_product(product_items, f"Correct {event2}s: {correct_count}")
     add_info_to_product(product_items, f"Incorrect {event2}s: {incorrect_count}")
 
-add_image_to_product(product_items, epochs_plot_path, 'epochs_plot.png')
+with open(epochs_plot_path, 'rb') as img_file:
+    img_base64 = base64.b64encode(img_file.read()).decode('utf-8')
+    add_image_to_product(product_items, 'Epochs plot', base64_data=img_base64)
 
 create_product_json(product_items)
