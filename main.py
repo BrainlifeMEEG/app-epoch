@@ -164,9 +164,6 @@ epochs_plot_path = os.path.join('out_figs', 'epochs_plot.png')
 fig[0].savefig(epochs_plot_path)
 plt.close(fig[0])
 
-# Add image to report
-report.add_image(epochs_plot_path, title='Epochs Visualization')
-
 # Save report
 report.save(os.path.join('out_report', 'report.html'), overwrite=True)
 
@@ -175,6 +172,7 @@ epochs.save(os.path.join('out_dir', 'meg-epo.fif'), overwrite=True)
 
 # == CREATE PRODUCT JSON ==
 product_items = []
+add_info_to_product(product_items, "Epochs created successfully from raw data.", msg_type='success')
 add_info_to_product(product_items, f"Number of epochs: {len(epochs)}")
 add_info_to_product(product_items, f"Epoch time window: {tmin} to {tmax} seconds")
 
