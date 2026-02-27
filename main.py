@@ -130,7 +130,7 @@ else:
 
 # == CREATE EPOCHS ==
 epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, metadata=metadata,
-                    tmin=tmin, tmax=tmax, preload=True)
+                    tmin=tmin, tmax=tmax, baseline=None,  preload=True)
 
 # Filter to correct responses if requested
 if config.get('use_correct', False) and config.get('assess_correctness', False):
