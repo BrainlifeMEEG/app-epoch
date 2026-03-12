@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #PBS -l nodes=1:ppn=1
-#PBS -l walltime=00:20:00
+#PBS -l walltime=01:30:00
 
 #SBATCH --job-name=template
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=20G
-#SBATCH --time=00:15:00
+#SBATCH --time=01:30:00
 
 set -x
 set -e
@@ -14,7 +14,7 @@ set -e
 # Make output directories
 mkdir -p out_dir
 mkdir -p out_figs
-mkdir -p out_dir_report
+mkdir -p out_report
 
 
 
