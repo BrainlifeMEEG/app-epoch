@@ -203,6 +203,31 @@ if _used_annotations:
 add_info_to_product(product_items, f"Number of epochs: {len(epochs)}")
 add_info_to_product(product_items, f"Epoch time window: {tmin} to {tmax} seconds")
 
+# Check for same-sample event collisions (only when using annotation fallback —
+# these are what caused STI 014 synthesis to fail)
+if _used_annotations and len(events) > 1:
+    samples = events[:, 0]
+    unique_samps, counts = np.unique(samples, return_counts=True)
+    collisions = unique_samps[counts > 1]
+    if len(collisions) > 0:
+        code_to_ch = {v: k for k, v in ann_event_id.items()}
+        for samp in collisions:
+            codes = events[events[:, 0] == samp, 2]
+            chs = [code_to_ch.get(c, str(c)) for c in codes]
+            add_info_to_product(product_items,
+                f"Same-sample collision at {samp / raw.info['sfreq']:.3f}s (sample {samp}): {', '.join(chs)} — caused STI 014 failure",
+                msg_type='warning')
+
+# Overlap info: how many stimulus epochs overlap with a neighbouring epoch
+epoch_duration = tmax - tmin
+sfreq = raw.info['sfreq']
+stim_events = events[np.isin(events[:, 2], list(event_id.values()))]
+if len(stim_events) > 1:
+    intervals = np.diff(stim_events[:, 0]) / sfreq  # inter-event intervals in seconds
+    n_overlapping = int(np.sum(intervals < epoch_duration))
+    overlap_pct = 100 * n_overlapping / len(stim_events)
+    add_info_to_product(product_items, f"Overlapping epochs: {n_overlapping}/{len(stim_events)} ({overlap_pct:.1f}%) — inter-event interval < {epoch_duration:.3f}s")
+
 if config.get('assess_correctness', False):
     correct_count = metadata[f'{event2}_correct'].sum()
     incorrect_count = len(metadata) - correct_count
