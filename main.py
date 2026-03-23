@@ -72,7 +72,22 @@ else:
     stim_channel = config.get('stim_channel')
     if not stim_channel:
         raise ValueError("stim_channel must be specified in config if events file is not provided.")
-    events = mne.find_events(raw, stim_channel=stim_channel)
+    try:
+        events = mne.find_events(raw, stim_channel=stim_channel)
+    except ValueError:
+        # STI 014 missing (e.g. EGI file with duplicate timestamps — collision during conversion).
+        # Fall back to annotations using position-based codes matching the EGI reader convention.
+        _default_include = ['D101','D102','D103','D104','D105','D106','D107','D108','D109','D110','D111','D112',
+                            'D201','D202','D203','D204','D205','D206','D207','D208','D209','D210','D211','D212',
+                            'DIN1','DIN2']
+        include = config.get('include', _default_include)
+        if isinstance(include, str):
+            include = [ch.strip() for ch in include.split(',')]
+        ann_descs = set(raw.annotations.description)
+        ann_event_id = {ch: i + 1 for i, ch in enumerate(include) if ch in ann_descs}
+        if not ann_event_id:
+            raise ValueError("No STI 014 and no matching D-channel annotations found.")
+        events, _ = mne.events_from_annotations(raw, event_id=ann_event_id, verbose=False)
 
 # == PARSE EVENT ID MAPPING ==
 # Parse event_id_condition_mapping into event_id dictionary
