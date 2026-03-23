@@ -175,7 +175,15 @@ if config.get('assess_correctness', False):
     )
 
 # == CREATE VISUALIZATIONS ==
-# Create epochs plot visualization
+# Events plot
+try:
+    fig_events = mne.viz.plot_events(events, sfreq=raw.info['sfreq'], event_id=event_id, show=False)
+    report.add_figure(fig_events, title='Events')
+    plt.close(fig_events)
+except Exception:
+    pass
+
+# Epochs GFP image
 fig = epochs.plot_image(combine='gfp', show=False)
 epochs_plot_path = os.path.join('out_figs', 'epochs_plot.png')
 fig[0].savefig(epochs_plot_path)
