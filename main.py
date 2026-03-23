@@ -113,6 +113,9 @@ keep_last = [event1, event2]
 # Extract event type labels
 event2_types = [k.split('/')[1] for k in event_id.keys() if event2 in k]
 
+# Save all events before make_metadata filters to epoch-relevant only
+_all_events = events.copy()
+
 # Create metadata linking events together
 metadata, events, event_id = mne.epochs.make_metadata(
     events=events, event_id=event_id,
@@ -218,15 +221,22 @@ if _used_annotations and len(events) > 1:
                 f"Same-sample collision at {samp / raw.info['sfreq']:.3f}s (sample {samp}): {', '.join(chs)} — caused STI 014 failure",
                 msg_type='warning')
 
-# Overlap info: how many stimulus epochs overlap with a neighbouring epoch
+# Overlap info
 epoch_duration = tmax - tmin
 sfreq = raw.info['sfreq']
+
+# All events (includes non-epoch D101-D112 etc.)
+if len(_all_events) > 1:
+    intervals_all = np.diff(np.sort(_all_events[:, 0])) / sfreq
+    n_overlap_all = int(np.sum(intervals_all < epoch_duration))
+    add_info_to_product(product_items, f"Overlapping events (all): {n_overlap_all}/{len(_all_events)} ({100*n_overlap_all/len(_all_events):.1f}%) — inter-event interval < {epoch_duration:.3f}s")
+
+# Epoch-related events only (codes in event_id)
 stim_events = events[np.isin(events[:, 2], list(event_id.values()))]
 if len(stim_events) > 1:
-    intervals = np.diff(stim_events[:, 0]) / sfreq  # inter-event intervals in seconds
-    n_overlapping = int(np.sum(intervals < epoch_duration))
-    overlap_pct = 100 * n_overlapping / len(stim_events)
-    add_info_to_product(product_items, f"Overlapping epochs: {n_overlapping}/{len(stim_events)} ({overlap_pct:.1f}%) — inter-event interval < {epoch_duration:.3f}s")
+    intervals_stim = np.diff(stim_events[:, 0]) / sfreq
+    n_overlap_stim = int(np.sum(intervals_stim < epoch_duration))
+    add_info_to_product(product_items, f"Overlapping epochs (stimulus only): {n_overlap_stim}/{len(stim_events)} ({100*n_overlap_stim/len(stim_events):.1f}%) — inter-event interval < {epoch_duration:.3f}s")
 
 if config.get('assess_correctness', False):
     correct_count = metadata[f'{event2}_correct'].sum()
