@@ -221,22 +221,14 @@ if _used_annotations and len(events) > 1:
                 f"Same-sample collision at {samp / raw.info['sfreq']:.3f}s (sample {samp}): {', '.join(chs)} — caused STI 014 failure",
                 msg_type='warning')
 
-# Overlap info
+# Overlap info — epoch-related events only
 epoch_duration = tmax - tmin
 sfreq = raw.info['sfreq']
-
-# All events (includes non-epoch D101-D112 etc.)
-if len(_all_events) > 1:
-    intervals_all = np.diff(np.sort(_all_events[:, 0])) / sfreq
-    n_overlap_all = int(np.sum(intervals_all < epoch_duration))
-    add_info_to_product(product_items, f"Overlapping events (all): {n_overlap_all}/{len(_all_events)} ({100*n_overlap_all/len(_all_events):.1f}%) — inter-event interval < {epoch_duration:.3f}s")
-
-# Epoch-related events only (codes in event_id)
 stim_events = events[np.isin(events[:, 2], list(event_id.values()))]
 if len(stim_events) > 1:
     intervals_stim = np.diff(stim_events[:, 0]) / sfreq
     n_overlap_stim = int(np.sum(intervals_stim < epoch_duration))
-    add_info_to_product(product_items, f"Overlapping epochs (stimulus only): {n_overlap_stim}/{len(stim_events)} ({100*n_overlap_stim/len(stim_events):.1f}%) — inter-event interval < {epoch_duration:.3f}s")
+    add_info_to_product(product_items, f"Overlapping epochs: {n_overlap_stim}/{len(stim_events)} ({100*n_overlap_stim/len(stim_events):.1f}%) — inter-event interval < {epoch_duration:.3f}s")
 
 if config.get('assess_correctness', False):
     correct_count = metadata[f'{event2}_correct'].sum()
