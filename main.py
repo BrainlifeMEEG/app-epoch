@@ -65,6 +65,7 @@ tmax = config['tmax']
 # == LOAD EVENTS ==
 # Load events from file or detect from raw data
 # Load events from file if provided, otherwise detect from stim channel
+_used_annotations = False
 events_file = config.get('events')
 if events_file and op.exists(events_file):
     events = mne.read_events(events_file)
@@ -88,6 +89,7 @@ else:
         if not ann_event_id:
             raise ValueError("No STI 014 and no matching D-channel annotations found.")
         events, _ = mne.events_from_annotations(raw, event_id=ann_event_id, verbose=False)
+        _used_annotations = True
 
 # == PARSE EVENT ID MAPPING ==
 # Parse event_id_condition_mapping into event_id dictionary
@@ -188,6 +190,8 @@ epochs.save(os.path.join('out_dir', 'meg-epo.fif'), overwrite=True)
 # == CREATE PRODUCT JSON ==
 product_items = []
 add_info_to_product(product_items, "Epochs created successfully from raw data.", msg_type='success')
+if _used_annotations:
+    add_info_to_product(product_items, f"Note: STI 014 not found — events extracted from annotations using include channels ({', '.join(include)})", msg_type='warning')
 add_info_to_product(product_items, f"Number of epochs: {len(epochs)}")
 add_info_to_product(product_items, f"Epoch time window: {tmin} to {tmax} seconds")
 
