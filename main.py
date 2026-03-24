@@ -78,6 +78,11 @@ else:
     except ValueError:
         # STI 014 missing (e.g. EGI file with duplicate timestamps — collision during conversion).
         # Fall back to annotations using position-based codes matching the EGI reader convention.
+        # Replicates the STI 014 synthesis logic from the old MNE EGI reader:
+        # event_ids = np.arange(len(include_)) + 1  (1-based position in include list)
+        # Event codes are position-based: first channel in include → 1, second → 2, etc.
+        # See: https://github.com/mne-tools/mne-python/blob/2bfe1ddbf664bd6fde8c17feb3b847c141017911/mne/io/egi/egi.py#L222
+        
         _default_include = ['D101','D102','D103','D104','D105','D106','D107','D108','D109','D110','D111','D112',
                             'D201','D202','D203','D204','D205','D206','D207','D208','D209','D210','D211','D212',
                             'DIN1','DIN2']
