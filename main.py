@@ -71,8 +71,10 @@ if events_file and op.exists(events_file):
 else:
     stim_channel = config.get('stim_channel')
     if not stim_channel:
-        raise ValueError("stim_channel must be specified in config if events file is not provided.")
-    events = mne.find_events(raw, stim_channel=stim_channel)
+        # use annotations in raw data if no stim channel specified
+        events, _ = mne.events_from_annotations(raw)
+    else:
+        events = mne.find_events(raw, stim_channel=stim_channel)
 
 # == PARSE EVENT ID MAPPING ==
 # Parse event_id_condition_mapping into event_id dictionary
