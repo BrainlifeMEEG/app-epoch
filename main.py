@@ -61,6 +61,10 @@ raw = mne.io.read_raw_fif(config['raw'], verbose=False)
 # Get epoch time window
 tmin = config['tmin']
 tmax = config['tmax']
+# parse comma separated picks into list
+picks = config['picks']
+if picks:
+    config['picks'] = [pick.strip() for pick in picks.split(',')]
 
 # == LOAD EVENTS ==
 # Load events from file or detect from raw data
@@ -131,7 +135,8 @@ else:
 
 
 # == CREATE EPOCHS ==
-epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, metadata=metadata,
+epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, picks = picks,
+                    metadata=metadata,
                     tmin=tmin, tmax=tmax, preload=True)
 
 # Filter to correct responses if requested
