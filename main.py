@@ -138,8 +138,8 @@ else:
 # Change string to tuple/None
 _bl = config.get('baseline')
 if isinstance(_bl, str) and _bl.strip().lower() not in ('none', ''):
-    _vals = {'none': None, 'tmin': float(tmin), 'tmax': float(tmax)}
-    baseline = tuple(_vals.get(p.strip().lower(), float(p.strip())) for p in _bl.strip().strip('()').split(','))
+    baseline = tuple(None if p.strip().lower() in ('none', 'tmin', 'tmax') else float(p.strip())
+                     for p in _bl.strip().strip('()').split(','))
 elif isinstance(_bl, str) and _bl.strip() == '':
     baseline = (None, 0)   # empty = MNE default
 else:
