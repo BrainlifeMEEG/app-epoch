@@ -135,8 +135,18 @@ else:
 
 
 # == CREATE EPOCHS ==
+# Change string to tuple/None
+_bl = config.get('baseline')
+if isinstance(_bl, str) and _bl.strip().lower() not in ('none', ''):
+    _vals = {'none': None, 'tmin': float(tmin), 'tmax': float(tmax)}
+    baseline = tuple(_vals.get(p.strip().lower(), float(p.strip())) for p in _bl.strip().strip('()').split(','))
+elif isinstance(_bl, str) and _bl.strip() == '':
+    baseline = (None, 0)   # empty = MNE default
+else:
+    baseline = None        # "None" = no correction
+
 epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, picks = picks,
-                    metadata=metadata, tmin=tmin, tmax=tmax, baseline=config['baseline'],  preload=True)
+                    metadata=metadata, tmin=tmin, tmax=tmax, baseline=baseline, preload=True)
 
 # Filter to correct responses if requested
 if config.get('use_correct', False) and config.get('assess_correctness', False):
