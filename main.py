@@ -163,8 +163,8 @@ report.add_epochs(epochs=epochs, title='Epoched Data')
 
 # Add statistics if assessing correctness
 if config.get('assess_correctness', False):
-    correct_count = epochs.metadata[f'{event2}_correct'].sum()
-    incorrect_count = len(epochs.metadata) - correct_count
+    correct_count = metadata[f'{event2}_correct'].sum()
+    incorrect_count = len(metadata) - correct_count
     report.add_html(
         title=f'Response Correctness',
         html=f'<div>'
@@ -193,8 +193,8 @@ add_info_to_product(product_items, f"Number of epochs: {len(epochs)}")
 add_info_to_product(product_items, f"Epoch time window: {tmin} to {tmax} seconds")
 
 if config.get('assess_correctness', False):
-    correct_count = epochs.metadata[f'{event2}_correct'].sum()
-    incorrect_count = len(epochs.metadata) - correct_count
+    correct_count = metadata[f'{event2}_correct'].sum()
+    incorrect_count = len(metadata) - correct_count
     add_info_to_product(product_items, f"Correct {event2}s: {correct_count}")
     add_info_to_product(product_items, f"Incorrect {event2}s: {incorrect_count}")
 
