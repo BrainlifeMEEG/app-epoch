@@ -61,24 +61,41 @@ raw = mne.io.read_raw_fif(config['raw'], verbose=False)
 # Get epoch time window
 tmin = config['tmin']
 tmax = config['tmax']
-# parse comma separated picks into list
-picks = config['picks']
-if picks:
-    picks = [pick.strip() for pick in picks.split(',')]
 
 # == LOAD EVENTS ==
 # Load events from file or detect from raw data
 # Load events from file if provided, otherwise detect from stim channel
+_used_annotations = False
 events_file = config.get('events')
 if events_file and op.exists(events_file):
     events = mne.read_events(events_file)
 else:
     stim_channel = config.get('stim_channel')
     if not stim_channel:
-        # use annotations in raw data if no stim channel specified
-        events, _ = mne.events_from_annotations(raw)
-    else:
+        raise ValueError("stim_channel must be specified in config if events file is not provided.")
+    try:
         events = mne.find_events(raw, stim_channel=stim_channel)
+    except ValueError:
+        # STI 014 missing (e.g. EGI file with duplicate timestamps — collision during conversion).
+        # Fall back to annotations using position-based codes matching the EGI reader convention.
+        # Replicates the STI 014 synthesis logic from the old MNE EGI reader:
+        # event_ids = np.arange(len(include_)) + 1  (1-based position in include list)
+        # Event codes are position-based: first channel in include -> 1, second -> 2, etc.
+        # See: https://github.com/mne-tools/mne-python/blob/2bfe1ddbf664bd6fde8c17feb3b847c141017911/mne/io/egi/egi.py#L222
+        include = config.get('include')
+        if not include:
+            raise ValueError(
+                "STI 014 not found and no 'include' channel list provided in config. "
+                "Set 'include' to the comma-separated list of EGI D-channels in the "
+                "correct order to use annotation-based event extraction."
+            )
+        include = [ch.strip() for ch in include.split(',')]
+        ann_descs = set(raw.annotations.description)
+        ann_event_id = {ch: i + 1 for i, ch in enumerate(include) if ch in ann_descs}
+        if not ann_event_id:
+            raise ValueError("No STI 014 and no matching annotations found for the provided include channels.")
+        events, _ = mne.events_from_annotations(raw, event_id=ann_event_id, verbose=False)
+        _used_annotations = True
 
 # == PARSE EVENT ID MAPPING ==
 # Parse event_id_condition_mapping into event_id dictionary
@@ -96,60 +113,51 @@ metadata_tmin = config['metadata_tmin']
 metadata_tmax = config['metadata_tmax']
 
 # Identify events for metadata creation
-row_events = [k for k in event_id.keys() if event1 in k]
-keep_last = [event1, event2]
+row_events = [k for k in event_id.keys() if event1 and event1 in k]
+event2_keys = [k for k in event_id.keys() if event2 and event2 in k and '/' in k]
+event2_types = [k.split('/')[1] for k in event2_keys]
+keep_last = ([event1] if row_events else []) + ([event2] if event2_keys else [])
 
-# Extract event type labels
-event2_types = [k.split('/')[1] for k in event_id.keys() if event2 in k]
+metadata = None
+if row_events and keep_last:
+    # Create metadata linking events together (stimulus-response pairing)
+    metadata, events, event_id = mne.epochs.make_metadata(
+        events=events, event_id=event_id,
+        tmin=metadata_tmin, tmax=metadata_tmax, sfreq=raw.info['sfreq'],
+        row_events=row_events,
+        keep_last=keep_last)
 
-# Create metadata linking events together
-metadata, events, event_id = mne.epochs.make_metadata(
-    events=events, event_id=event_id,
-    tmin=metadata_tmin, tmax=metadata_tmax, sfreq=raw.info['sfreq'],
-    row_events=row_events,
-    keep_last=keep_last)
+    # == ASSESS RESPONSE CORRECTNESS ==
+    if config.get('assess_correctness', False):
+        # Build mapping of event2 types to event1 targets
+        targets = {}
+        for event2_type in event2_types:
+            for stim in row_events:
+                if event2_type in stim:
+                    target = stim.split('/')[-1].split('-')[0]
+                    targets[event2_type] = target
+                    break
 
-# == ASSESS RESPONSE CORRECTNESS ==
-if config.get('assess_correctness', False):
-    # Build mapping of event2 types to event1 targets
-    targets = {}
-    for event2_type in event2_types:
-        for stim in row_events:
-            if event2_type in stim:
-                target = stim.split('/')[-1].split('-')[0]
-                targets[event2_type] = target
-                break
-    
-    # Assign event1 type based on target information
-    metadata[f'{event1}_type'] = 'unknown'
-    for event2_type, target in targets.items():
-        metadata.loc[metadata[f'last_{event1}'].str.contains(target), f'{event1}_type'] = event2_type
-    
-    # Assess correctness: does last_event2 match the inferred event1_type?
-    metadata[f'{event2}_correct'] = False
-    metadata.loc[metadata[f'{event1}_type'] == metadata[f'last_{event2}'],
-                 f'{event2}_correct'] = True
-else:
-    # Initialize correctness column as all True if not assessing
-    metadata[f'{event2}_correct'] = True
+        # Assign event1 type based on target information
+        metadata[f'{event1}_type'] = 'unknown'
+        for event2_type, target in targets.items():
+            metadata.loc[metadata[f'last_{event1}'].str.contains(target), f'{event1}_type'] = event2_type
+
+        # Assess correctness: does last_event2 match the inferred event1_type?
+        metadata[f'{event2}_correct'] = False
+        metadata.loc[metadata[f'{event1}_type'] == metadata[f'last_{event2}'],
+                     f'{event2}_correct'] = True
+    else:
+        # Initialize correctness column as all True if not assessing
+        metadata[f'{event2}_correct'] = True
 
 
 # == CREATE EPOCHS ==
-# Change string to tuple/None
-_bl = config.get('baseline')
-if isinstance(_bl, str) and _bl.strip().lower() not in ('none', ''):
-    baseline = tuple(None if p.strip().lower() in ('none', 'tmin', 'tmax') else float(p.strip())
-                     for p in _bl.strip().strip('()').split(','))
-elif isinstance(_bl, str) and _bl.strip() == '':
-    baseline = (None, 0)   # empty = MNE default
-else:
-    baseline = None        # "None" = no correction
-
-epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, picks = picks,
-                    metadata=metadata, tmin=tmin, tmax=tmax, baseline=baseline, preload=True)
+epochs = mne.Epochs(raw=raw, events=events, event_id=event_id, metadata=metadata,
+                    tmin=tmin, tmax=tmax, baseline=None,  preload=True)
 
 # Filter to correct responses if requested
-if config.get('use_correct', False) and config.get('assess_correctness', False):
+if metadata is not None and config.get('use_correct', False) and config.get('assess_correctness', False):
     epochs = epochs[f'{event2}_correct']
 
 if len(epochs) == 0:
@@ -162,7 +170,7 @@ report = mne.Report(title='Epoch Extraction Report')
 report.add_epochs(epochs=epochs, title='Epoched Data')
 
 # Add statistics if assessing correctness
-if config.get('assess_correctness', False):
+if metadata is not None and config.get('assess_correctness', False):
     correct_count = metadata[f'{event2}_correct'].sum()
     incorrect_count = len(metadata) - correct_count
     report.add_html(
@@ -174,7 +182,15 @@ if config.get('assess_correctness', False):
     )
 
 # == CREATE VISUALIZATIONS ==
-# Create epochs plot visualization
+# Events plot
+try:
+    fig_events = mne.viz.plot_events(events, sfreq=raw.info['sfreq'], event_id=event_id, show=False)
+    report.add_figure(fig_events, title='Events')
+    plt.close(fig_events)
+except Exception:
+    pass
+
+# Epochs GFP image
 fig = epochs.plot_image(combine='gfp', show=False)
 epochs_plot_path = os.path.join('out_figs', 'epochs_plot.png')
 fig[0].savefig(epochs_plot_path)
@@ -189,10 +205,36 @@ epochs.save(os.path.join('out_dir', 'meg-epo.fif'), overwrite=True)
 # == CREATE PRODUCT JSON ==
 product_items = []
 add_info_to_product(product_items, "Epochs created successfully from raw data.", msg_type='success')
+if _used_annotations:
+    add_info_to_product(product_items, f"Note: STI 014 not found — events extracted from annotations using include channels ({', '.join(include)})", msg_type='warning')
 add_info_to_product(product_items, f"Number of epochs: {len(epochs)}")
 add_info_to_product(product_items, f"Epoch time window: {tmin} to {tmax} seconds")
 
-if config.get('assess_correctness', False):
+# Check for same-sample event collisions (only when using annotation fallback —
+# these are what caused STI 014 synthesis to fail)
+if _used_annotations and len(events) > 1:
+    samples = events[:, 0]
+    unique_samps, counts = np.unique(samples, return_counts=True)
+    collisions = unique_samps[counts > 1]
+    if len(collisions) > 0:
+        code_to_ch = {v: k for k, v in ann_event_id.items()}
+        for samp in collisions:
+            codes = events[events[:, 0] == samp, 2]
+            chs = [code_to_ch.get(c, str(c)) for c in codes]
+            add_info_to_product(product_items,
+                f"Same-sample collision at {samp / raw.info['sfreq']:.3f}s (sample {samp}): {', '.join(chs)} — caused STI 014 failure",
+                msg_type='warning')
+
+# Overlap info — epoch-related events only
+epoch_duration = tmax - tmin
+sfreq = raw.info['sfreq']
+stim_events = events[np.isin(events[:, 2], list(event_id.values()))]
+if len(stim_events) > 1:
+    intervals_stim = np.diff(stim_events[:, 0]) / sfreq
+    n_overlap_stim = int(np.sum(intervals_stim < epoch_duration))
+    add_info_to_product(product_items, f"Overlapping epochs: {n_overlap_stim}/{len(stim_events)} ({100*n_overlap_stim/len(stim_events):.1f}%) — inter-event interval < {epoch_duration:.3f}s")
+
+if metadata is not None and config.get('assess_correctness', False):
     correct_count = metadata[f'{event2}_correct'].sum()
     incorrect_count = len(metadata) - correct_count
     add_info_to_product(product_items, f"Correct {event2}s: {correct_count}")
