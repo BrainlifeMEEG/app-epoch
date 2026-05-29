@@ -53,8 +53,12 @@ config = load_config()
 
 # == LOAD DATA ==
 # Read raw data file
-raw = mne.io.read_raw_fif(config['raw'], verbose=False)
-
+_raw_path = config['raw']
+if not op.isfile(_raw_path):
+    _alt = op.join(op.dirname(_raw_path), 'meg.fif')
+    if op.isfile(_alt):
+        _raw_path = _alt
+raw = mne.io.read_raw_fif(_raw_path, verbose=False)
 # Get epoch time window
 tmin = config['tmin']
 tmax = config['tmax']
