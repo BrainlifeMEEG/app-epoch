@@ -33,8 +33,6 @@ import mne
 import os.path as op
 import matplotlib.pyplot as plt
 import numpy as np
-import base64
-
 # Import shared utilities
 from brainlife_utils import (
     load_config,
@@ -162,6 +160,7 @@ report = mne.Report(title='Epoch Extraction Report')
 report.add_epochs(epochs=epochs, title='Epoched Data')
 
 # Add statistics if assessing correctness
+correct_count = incorrect_count = None
 if config.get('assess_correctness', False):
     correct_count = metadata[f'{event2}_correct'].sum()
     incorrect_count = len(metadata) - correct_count
@@ -189,17 +188,13 @@ epochs.save(os.path.join('out_dir', 'meg-epo.fif'), overwrite=True)
 # == CREATE PRODUCT JSON ==
 product_items = []
 add_info_to_product(product_items, "Epochs created successfully from raw data.", msg_type='success')
-add_info_to_product(product_items, f"Number of epochs: {len(epochs)}")
-add_info_to_product(product_items, f"Epoch time window: {tmin} to {tmax} seconds")
+if config.get('assess_correctness', False) and config.get('use_correct', False):
+    add_info_to_product(product_items, "Only correct responses were included in the epochs.", msg_type='info')
+add_info_to_product(product_items, f"Number of epochs: {len(epochs)}\nEpoch time window: {tmin} to {tmax} seconds")
 
-if config.get('assess_correctness', False):
-    correct_count = metadata[f'{event2}_correct'].sum()
-    incorrect_count = len(metadata) - correct_count
-    add_info_to_product(product_items, f"Correct {event2}s: {correct_count}")
-    add_info_to_product(product_items, f"Incorrect {event2}s: {incorrect_count}")
+if correct_count is not None:
+    add_info_to_product(product_items, f"Correct {event2}s: {correct_count}\nIncorrect {event2}s: {incorrect_count}")
 
-with open(epochs_plot_path, 'rb') as img_file:
-    img_base64 = base64.b64encode(img_file.read()).decode('utf-8')
-    add_image_to_product(product_items, 'Epochs plot', base64_data=img_base64)
+add_image_to_product(product_items, 'Epochs plot', filepath=epochs_plot_path)
 
 create_product_json(product_items)
