@@ -11,11 +11,6 @@
 set -x
 set -e
 
-# Make output directories
-mkdir -p out_dir
-mkdir -p out_figs
-mkdir -p out_report
-
 
 
 singularity exec docker://aunnikri642/app-freesurfer-mne-source-recon python3 main.py
