@@ -32,7 +32,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'brainlife_utils'))
 import mne
 import os.path as op
 import matplotlib.pyplot as plt
-import numpy as np
 # Import shared utilities
 from brainlife_utils import (
     load_config,
@@ -62,7 +61,7 @@ tmax = config['tmax']
 # parse comma separated picks into list
 picks = config['picks']
 if picks:
-    config['picks'] = [pick.strip() for pick in picks.split(',')]
+    picks = [p.strip() for p in picks.split(',')]
 
 # == LOAD EVENTS ==
 # Load events from file or detect from raw data
@@ -82,7 +81,7 @@ else:
 # Parse event_id_condition_mapping into event_id dictionary
 event_id_condition = config['event_id_condition_mapping']
 event_id = dict((x.strip(), int(y.strip()))
-                for x, y in (element.split('-')
+                for x, y in (element.rsplit('-', 1)
                              for element in event_id_condition.split(',')))
 
 # Get event types from configuration
@@ -177,7 +176,8 @@ if config.get('assess_correctness', False):
 fig = epochs.plot_image(combine='gfp', show=False)
 epochs_plot_path = os.path.join('out_figs', 'epochs_plot.png')
 fig[0].savefig(epochs_plot_path)
-plt.close(fig[0])
+for f in fig:
+    plt.close(f)
 
 # Save report
 report.save(os.path.join('out_report', 'report.html'), overwrite=True)
