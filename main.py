@@ -184,7 +184,7 @@ for f in fig:
     plt.close(f)
 
 # Save report
-report.save(os.path.join('out_report', 'report.html'), overwrite=True)
+report.save(os.path.join('out_report', 'report.html'), overwrite=True, open_browser=False)
 
 # == SAVE EPOCHED DATA ==
 epochs.save(os.path.join('out_dir', 'meg-epo.fif'), overwrite=True)
@@ -194,10 +194,10 @@ product_items = []
 add_info_to_product(product_items, "Epochs created successfully from raw data.", msg_type='success')
 if config.get('assess_correctness', False) and config.get('use_correct', False):
     add_info_to_product(product_items, "Only correct responses were included in the epochs.", msg_type='info')
-add_info_to_product(product_items, f"Number of epochs: {len(epochs)}\nEpoch time window: {tmin} to {tmax} seconds")
+add_info_to_product(product_items, f"Number of epochs: {len(epochs)}\tEpoch time window: {tmin} to {tmax} seconds")
 
 if correct_count is not None:
-    add_info_to_product(product_items, f"Correct {event2}s: {correct_count}\nIncorrect {event2}s: {incorrect_count}")
+    add_info_to_product(product_items, f"Correct {event2}s: {correct_count}\tIncorrect {event2}s: {incorrect_count}")
 
 add_image_to_product(product_items, 'Epochs plot', filepath=epochs_plot_path)
 
