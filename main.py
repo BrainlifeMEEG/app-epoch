@@ -10,7 +10,7 @@ Inputs:
     - event.tsv (optional): Events file. If not provided, events are detected from stim channel
 
 Outputs:
-    - out_dir/meg-epo.fif: Epoched data in MNE format
+    - out_dir/epo.fif: Epoched data in MNE format
     - out_figs/epochs_plot.png: Visualization of epoched data
     - out_report/report.html: HTML report with epoch statistics and visualizations
     - product.json: Brainlife.io product metadata including visualization images
@@ -39,7 +39,8 @@ from brainlife_utils import (
     ensure_output_dirs,
     create_product_json,
     add_info_to_product,
-    add_image_to_product
+    add_image_to_product,
+    require_config_keys
 )
 
 # Set up matplotlib for headless execution
@@ -50,6 +51,10 @@ ensure_output_dirs('out_dir', 'out_figs', 'out_report')
 
 # Load configuration
 config = load_config()
+require_config_keys(config, [
+    'raw', 'tmin', 'tmax', 'picks', 'event_id_condition_mapping',
+    'event1kw', 'event2kw', 'metadata_tmin', 'metadata_tmax'
+])
 
 # == LOAD DATA ==
 # Read raw data file
@@ -187,7 +192,7 @@ for f in fig:
 report.save(os.path.join('out_report', 'report.html'), overwrite=True, open_browser=False)
 
 # == SAVE EPOCHED DATA ==
-epochs.save(os.path.join('out_dir', 'meg-epo.fif'), overwrite=True)
+epochs.save(os.path.join('out_dir', 'epo.fif'), overwrite=True)
 
 # == CREATE PRODUCT JSON ==
 product_items = []

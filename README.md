@@ -13,7 +13,7 @@ This app extracts epochs (time-locked segments) from raw MEG/EEG data based on e
 
 ## Outputs
 
-- **meg-epo.fif**: Epoched data in MNE format
+- **epo.fif**: Epoched data in MNE format
 - **report.html**: HTML report with epoch statistics and visualizations
 - **product.json**: Brainlife.io product metadata including visualization images
 
