@@ -192,7 +192,7 @@ for f in fig:
 report.save(os.path.join('out_report', 'report.html'), overwrite=True, open_browser=False)
 
 # == SAVE EPOCHED DATA ==
-epochs.save(os.path.join('out_dir', 'epo.fif'), overwrite=True)
+epochs.save(os.path.join('out_dir', 'meg-epo.fif'), overwrite=True)
 
 # == CREATE PRODUCT JSON ==
 product_items = []
