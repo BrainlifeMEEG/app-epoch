@@ -189,7 +189,7 @@ for f in fig:
     plt.close(f)
 
 # Save report
-report.save(os.path.join('out_report', 'report.html'), overwrite=True, open_browser=False)
+report.save(os.path.join('out_report', 'report.html'), overwrite=True, open_browser=False, verbose=False)
 
 # == SAVE EPOCHED DATA ==
 epochs.save(os.path.join('out_dir', 'meg-epo.fif'), overwrite=True)
