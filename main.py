@@ -67,10 +67,17 @@ raw = mne.io.read_raw_fif(_raw_path, verbose=False)
 # Get epoch time window
 tmin = config['tmin']
 tmax = config['tmax']
-# parse comma separated picks into list
+# parse comma separated picks into list; empty/unset means "all channels".
+# MNE only recognizes 'all'/'data' as special bare strings -- anything else
+# (a channel type or name, or several comma-separated) must be a list, even
+# a single one (e.g. picks='eeg' is invalid, picks=['eeg'] is not).
 picks = config['picks']
-if picks:
-    picks = [p.strip() for p in picks.split(',')]
+if picks and picks.strip():
+    picks = picks.strip()
+    if picks not in ('all', 'data'):
+        picks = [p.strip() for p in picks.split(',')]
+else:
+    picks = None
 
 # == LOAD EVENTS ==
 # Load events from file or detect from raw data
@@ -97,26 +104,34 @@ event_id = dict((x.strip(), int(y.strip()))
 event1 = config['event1kw']  # e.g., 'stimulus'
 event2 = config['event2kw']  # e.g., 'response'
 
-# == CREATE METADATA ==
-metadata_tmin = config['metadata_tmin']
-metadata_tmax = config['metadata_tmax']
-
-# Identify events for metadata creation
-row_events = [k for k in event_id.keys() if event1 in k]
-keep_last = [event1, event2]
-
-# Extract event type labels
-event2_types = [k.split('/')[1] for k in event_id.keys() if event2 in k]
-
-# Create metadata linking events together
-metadata, events, event_id = mne.epochs.make_metadata(
-    events=events, event_id=event_id,
-    tmin=metadata_tmin, tmax=metadata_tmax, sfreq=raw.info['sfreq'],
-    row_events=row_events,
-    keep_last=keep_last)
-
-# == ASSESS RESPONSE CORRECTNESS ==
+# == CREATE METADATA (only needed to assess response correctness) ==
+# make_metadata's row_events/keep_last only make sense for HED-style event
+# labels that literally contain event1kw/event2kw (e.g. 'stimulus/.../left',
+# 'response/left'); it fails outright otherwise (row_events ends up empty
+# and keep_last can't find event1kw/event2kw in the event_id dict at all).
+# Response-correctness assessment is the only thing that needs it, so only
+# run it when assess_correctness is actually requested -- plain condition
+# labels (e.g. 'face/famous/first') epoch fine without any of this.
+metadata = None
 if config.get('assess_correctness', False):
+    metadata_tmin = config['metadata_tmin']
+    metadata_tmax = config['metadata_tmax']
+
+    # Identify events for metadata creation
+    row_events = [k for k in event_id.keys() if event1 in k]
+    keep_last = [event1, event2]
+
+    # Extract event type labels
+    event2_types = [k.split('/')[1] for k in event_id.keys() if event2 in k]
+
+    # Create metadata linking events together
+    metadata, events, event_id = mne.epochs.make_metadata(
+        events=events, event_id=event_id,
+        tmin=metadata_tmin, tmax=metadata_tmax, sfreq=raw.info['sfreq'],
+        row_events=row_events,
+        keep_last=keep_last)
+
+    # == ASSESS RESPONSE CORRECTNESS ==
     # Build mapping of event2 types to event1 targets
     targets = {}
     for event2_type in event2_types:
@@ -125,19 +140,16 @@ if config.get('assess_correctness', False):
                 target = stim.split('/')[-1].split('-')[0]
                 targets[event2_type] = target
                 break
-    
+
     # Assign event1 type based on target information
     metadata[f'{event1}_type'] = 'unknown'
     for event2_type, target in targets.items():
         metadata.loc[metadata[f'last_{event1}'].str.contains(target), f'{event1}_type'] = event2_type
-    
+
     # Assess correctness: does last_event2 match the inferred event1_type?
     metadata[f'{event2}_correct'] = False
     metadata.loc[metadata[f'{event1}_type'] == metadata[f'last_{event2}'],
                  f'{event2}_correct'] = True
-else:
-    # Initialize correctness column as all True if not assessing
-    metadata[f'{event2}_correct'] = True
 
 
 # == CREATE EPOCHS ==
