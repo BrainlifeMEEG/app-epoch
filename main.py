@@ -32,6 +32,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'brainlife_utils'))
 import mne
 import os.path as op
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 # Import shared utilities
 from brainlife_utils import (
     load_config,
@@ -89,7 +91,20 @@ else:
 # Load events from file if provided, otherwise detect from stim channel
 events_file = config.get('events')
 if events_file and op.exists(events_file):
-    events = mne.read_events(events_file)
+    # This is a BIDS-style events.tsv (onset/duration/value/sample columns,
+    # onset in seconds, written by mne_bids.write._events_tsv -- see the
+    # `events` app's own main.py), NOT MNE's native 3-column sample-based
+    # .eve/.fif format that mne.read_events() expects (it would crash
+    # trying to float()-parse the header row itself, or the onset/duration
+    # text columns as event codes). Reconstruct MNE's native Nx3 events
+    # array from the 'sample'/'value' columns directly -- both already
+    # integers, avoiding any onset-seconds*sfreq round-trip/rounding.
+    events_df = pd.read_csv(events_file, sep='\t')
+    events = np.column_stack([
+        events_df['sample'].to_numpy(dtype=int) + raw.first_samp,
+        np.zeros(len(events_df), dtype=int),
+        events_df['value'].to_numpy(dtype=int),
+    ])
 else:
     stim_channel = config.get('stim_channel')
     if not stim_channel:
