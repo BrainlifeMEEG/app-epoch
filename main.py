@@ -52,9 +52,14 @@ ensure_output_dirs('out_dir', 'out_figs', 'out_report')
 # Load configuration
 config = load_config()
 require_config_keys(config, [
-    'raw', 'tmin', 'tmax', 'picks', 'event_id_condition_mapping',
-    'event1kw', 'event2kw', 'metadata_tmin', 'metadata_tmax'
+    'raw', 'tmin', 'tmax', 'event_id_condition_mapping',
+    'event1kw', 'event2kw'
 ])
+# 'picks' is deliberately NOT required here: an empty/unset value is a valid
+# choice meaning "all channels" (handled explicitly below), not a config bug.
+# 'metadata_tmin'/'metadata_tmax' are only used when assess_correctness=True
+# (checked at that point below), so requiring them unconditionally here would
+# reject perfectly valid configs that don't use that feature.
 
 # == LOAD DATA ==
 # Read raw data file
@@ -114,6 +119,7 @@ event2 = config['event2kw']  # e.g., 'response'
 # labels (e.g. 'face/famous/first') epoch fine without any of this.
 metadata = None
 if config.get('assess_correctness', False):
+    require_config_keys(config, ['metadata_tmin', 'metadata_tmax'])
     metadata_tmin = config['metadata_tmin']
     metadata_tmax = config['metadata_tmax']
 
